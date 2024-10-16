@@ -13,7 +13,29 @@
  # - Nov. 30, 2018 : 
 ##########################################
 
+# To avoid login message
 SSH_NO_BANNER="-q -o LogLevel=QUIET -o StrictHostKeyChecking=no"  # example full ssh command : ssh -q -o LogLevel=QUIET hostname command  
+
+#################################################
+# Package manager command to use.  yum or apt 
+#################################################
+pkgmgr="yum"  # Linus package manager command. set this as yum as it's more popular  
+
+if [[ -f /etc/os-release ]]; then   ## make sure to run with bash. Otherwise, will get error.   
+    os=$(grep '^ID=' /etc/os-release | awk -F= '{print $2}' | tr -d '"')    # remove the quote " if there is
+    
+    if [[ "$os" == "rhel" || "$os" == "fedora" || "$os" == "centos" ]]; then
+        pkgmgr="yum"
+    elif [[ "$os" == "ubuntu" || "$os" == "debian" ]]; then
+        pkgmgr="apt"
+    else
+        echo "Unsupported OS : $os    . Exiting !!"
+        exit 1
+    fi
+else 
+    echo "Cannot find /etc/os-release file. Is this Linux OS ? Check again. Exiting now !!"
+    exit 1
+fi
 
 
 # Command return value check and exit 1 if non zero
@@ -105,7 +127,7 @@ swCmdChk(){
     do
         disp_msglvl2 "Checking $i"
     	which $i
-    	[ $? -ne 0 ] && yum install $i -y
+    	[ $? -ne 0 ] && $pkgmgr install $i -y
     done
 }
 
@@ -113,12 +135,12 @@ pyChk(){
     which python3
     if [ $? -ne 0 ] ; then
         disp_msglvl2 "installaing python3"   
-    	yum install python3 -y
+    	$pkgmgr install python3 -y
     fi
     which pip3  # On Redhat 8.10, had to install this again. Python3 install didn add this somehow.  
     if [ $? -ne 0 ] ; then
         disp_msglvl2 "installaing pip3"
-        yum install python3-pip -y
+        $pkgmgr install python3-pip -y
     fi
     disp_msglvl2 "Python necessary library installation"    
     # need to install library even if there is existing python3   

@@ -14,7 +14,7 @@ swCmdChkAllHost(){
     		disp_msglvl2 "Installing $SWNAME on $HOST..."
     		ssh $SSH_NO_BANNER root@$HOST which $SWNAME > /dev/null 
             if [ $? -ne 0 ]; then
-                ssh $SSH_NO_BANNER $HOST yum -y install $SWNAME
+                ssh $SSH_NO_BANNER $HOST $pkgmgr -y install $SWNAME
             else
                 echo "$SWNAME is already installed on $HOST"
             fi
@@ -34,7 +34,7 @@ setProfile(){
 }
 
 #installXterm
-swCmdChkAllHost "podman xterm"
+swCmdChkAllHost "xterm"
 setProfile
 pyChk ## install python 
 

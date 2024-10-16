@@ -1,30 +1,32 @@
-# kubenetes on baremetal
+# DB2wh reference   
 
 ## Contents
 
-- [kubenetes on baremetal](#kubenetes-on-baremetal)
+- [DB2wh reference](#db2wh-reference)
   - [Contents](#contents)
-  - [Reference](#reference)
-  - [Manual steps](#manual-steps)
+  - [Command reference](#command-reference)
+    - [LDAP](#ldap)
   - [Logs](#logs)
     - [collect DB2 warehouse logs](#collect-db2-warehouse-logs)
   - [Debug status](#debug-status)
   - [Files](#files)
 
 
-## Reference
+## Command reference  
 
-https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/   
-https://nvtienanh.info/blog/cai-dat-kubernetes-cluster-tren-ubuntu-server-22-04     
-
-
-[Content](#contents)  
-
-## Manual steps
-
-Disable swap ( all hosts )       
 ```
-sudo swapoff -a 
+podman exec -it Db2wh bash   # Go into the container   
+podman exec -it Db2wh status   # status check  
+podman exec -it Db2wh setpass <new password> # Change bluadmin password   
+
+/opt/ibm/dsserver/scripts/recovery/mgmt_health_check.pl -what LDAPrunning -debug  # service check each   
+```
+
+### LDAP
+```
+systemctl status slapd.service     ## internal LDAP service check  
+netstat -an |egrep "State|:389"    ## ldap connection 
+ldapsearch -x -Z    # list all LDAP user names   
 ```
 [Content](#contents)  
 
