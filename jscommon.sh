@@ -4,6 +4,7 @@
  # Copyright ? 2021 Jun Su Lee. All rights reserved.
  # Author : Jun Su Lee ( junsulee@au1.ibm.com )
  # Description : Common usage for all kind of shell scripts
+ #               For this, I prefer not to put dependencies with other scripts.  
  #
  # Category : DB2 support
  # Usage
@@ -140,7 +141,15 @@ pyChk(){
     which pip3  # On Redhat 8.10, had to install this again. Python3 install didn add this somehow.  
     if [ $? -ne 0 ] ; then
         disp_msglvl2 "installaing pip3"
-        $pkgmgr install python3-pip -y
+            # From the previous logic, this is set when OS is ubuntu
+            # To install pip3, there are some other steps in ububtu
+            if [[ "$pkgmgr" == "apt" ]]; then
+                sudo add-apt-repository universe
+                sudo $pkgmgr update
+                sudo $pkgmgr install python3-pip
+            else  ## non ubuntu, mostly Redhat
+                $pkgmgr install python3-pip -y
+            fi
     fi
     disp_msglvl2 "Python necessary library installation"    
     # need to install library even if there is existing python3   

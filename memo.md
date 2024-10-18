@@ -1,4 +1,4 @@
-# DB2wh reference   
+# temporary meo 
 
 ## Contents
 
@@ -12,7 +12,11 @@
   - [Files](#files)
 
 
-## Command reference  
+## Reference
+
+https://nvtienanh.info/blog/cai-dat-kubernetes-cluster-tren-ubuntu-server-22-04     
+
+
 
 ```
 podman exec -it Db2wh bash   # Go into the container   

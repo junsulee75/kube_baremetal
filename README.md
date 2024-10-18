@@ -6,10 +6,16 @@
   - [Contents](#contents)
   - [Reference](#reference)
   - [Manual steps](#manual-steps)
-  - [Logs](#logs)
-    - [collect DB2 warehouse logs](#collect-db2-warehouse-logs)
-  - [Debug status](#debug-status)
-  - [Files](#files)
+    - [Disable swap ( all hosts )](#disable-swap--all-hosts-)
+    - [Load setting ( all hosts )](#load-setting--all-hosts-)
+    - [Kernel parameters for kubenetes ( all hosts )](#kernel-parameters-for-kubenetes--all-hosts-)
+    - [Install containerd](#install-containerd)
+    - [Configure cgroup for containerd](#configure-cgroup-for-containerd)
+    - [Installing kubeadm, kubelet and kubectl](#installing-kubeadm-kubelet-and-kubectl)
+    - [creating a cluster](#creating-a-cluster)
+    - [Install network addons](#install-network-addons)
+      - [CALICO : not working well](#calico--not-working-well)
+      - [flannel working](#flannel-working)
 
 
 ## Reference
@@ -22,132 +28,314 @@ https://nvtienanh.info/blog/cai-dat-kubernetes-cluster-tren-ubuntu-server-22-04
 
 ## Manual steps
 
-Disable swap ( all hosts )       
+### Disable swap ( all hosts )       
 ```
 sudo swapoff -a 
 ```
+
+Enable port forward
+```
+./enablePortFwrd.sh
+```
+
+### Load setting ( all hosts ) 
+```
+# automatical load at boot
+sudo tee /etc/modules-load.d/containerd.conf <<EOF
+overlay
+br_netfilter
+EOF
+
+#Load Kernel Modules Manually
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+#Verify if the Modules are Loaded:
+lsmod |grep overlay
+lsmod |grep br_netfilter
+```
+
+> Necessary ? not on recent k8s doc.   
+
+### Kernel parameters for kubenetes ( all hosts )    
+
+Forwarding IPv4 and letting iptables ee bridged traffic     
+```
+sudo tee /etc/sysctl.d/kubernetes.conf <<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+sudo sysctl --system
+```
+> Necessary ? not on recent k8s doc.    
+
+### Install containerd  
+
+https://docs.docker.com/engine/install/ubuntu/   
+
+```
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+sudo apt-get install containerd.io
+
+```
+
+### Configure cgroup for containerd  
+
+```
+containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
+sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+grep SystemdCgroup /etc/containerd/config.toml
+sudo sed -i 's/sandbox_image = "registry.k8s.io\/pause:3.[0-9]"/sandbox_image = "registry.k8s.io\/pause:3.9"/' /etc/containerd/config.toml
+grep sandbox_image /etc/containerd/config.toml 
+```
+
+```
+sudo systemctl restart containerd
+sudo systemctl status containerd
+sudo systemctl enable containerd
+```
 [Content](#contents)  
 
-## Logs  
-```
-/var/log/Db2wh_local.log    
-```
+### Installing kubeadm, kubelet and kubectl
 
-### collect DB2 warehouse logs
-```
-podman exec -it Db2wh getlogs > db2wh.log
-```
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/   
 
 ```
-cat db2wh.log
+sudo apt-get update
+# apt-transport-https may be a dummy package; if so, you can skip that package
+sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
+
+# If the directory `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
+# sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+
+# This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+#sudo systemctl enable --now kubelet #no need to do . optional  
+```
+
+
+[Content](#contents)  
+
+### creating a cluster 
+
+```
+# my ip is 10.11.11.66/20 from "ip addr"
+sudo kubeadm init \
+  --pod-network-cidr=10.200.0.0/16 \
+  --apiserver-advertise-address=10.11.11.66
+#  --control-plane-endpoint=jskube1.fyre.ibm.com 
+
+```
+
+By root user 
+
+```
+export KUBECONFIG=/etc/kubernetes/admin.conf
+kubectl cluster-info
+kubectl get node -o wide
+cat /var/lib/kubelet/kubeadm-flags.env  
+```
+
+On workers
+```
+kubeadm join 10.11.11.66:6443 --token szejeo.v8ari9uraguos55n \
+	--discovery-token-ca-cert-hash sha256:d3127eee98bce6ad1beb0f63d6469707ae84188eec6495e1de4fb91670972a07 
+```
+
+On master
+```
+kubectl get node -o wide
+```
+
+[Content](#contents)  
+
+### Install network addons
+
+https://kubernetes.io/docs/concepts/cluster-administration/addons/#networking-and-network-policy   
+
+
+#### CALICO : not working well  
+
+```
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml -O
+```
+
+```yaml
+             - name: CALICO_IPV4POOL_CIDR
+               value: "10.200.0.0/16"
+```
+
+```
+kubectl apply -f calico.yaml
+```
+
+```
+kubectl get pods -n kube-system ; echo ;echo ;kubectl get node
+```
+
+Error   
+```
+Events:
+  Type     Reason            Age                     From     Message
+  ----     ------            ----                    ----     -------
+  Warning  DNSConfigForming  5m36s (x507 over 115m)  kubelet  Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 10.11.0.21 10.11.0.22 9.30.99.253
+```
+
+
+#### flannel working
+
+https://github.com/flannel-io/flannel#deploying-flannel-manually   
+
+
+```yaml
+
+  net-conf.json: |
+    {
+      "Network": "10.200.0.0/16",
+      "EnableNFTables": false,
+      "Backend": {
+        "Type": "vxlan"
+      }
+    }
 ...
-Logs successfully collected and saved to <host volume>/tmp/Db2wh_240412033640_logs.zip 
-Your mounted host volume was specified in the docker run command (e.g. docker run ... -v <host volume>:/mnt/bludata0)
+      containers:
+      - name: kube-flannel
+        image: docker.io/flannel/flannel:v0.25.7
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        - --iface=eth0
 ```
 
 ```
-# ls /mnt/clusterfs/tmp
-Db2wh_240412033640_logs.zip  Db2wh_Local_240214134053_logs.zip
+# kubectl apply -f kube-flannel.yml
+Warning: resource namespaces/kube-flannel is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+namespace/kube-flannel configured
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+serviceaccount/flannel created
+configmap/kube-flannel-cfg created
+daemonset.apps/kube-flannel-ds created
+
+```
+
+
+```
+root@jskube1:~/kube_baremetal# kubectl get pod -A
+NAMESPACE      NAME                                           READY   STATUS                  RESTARTS   AGE
+kube-flannel   kube-flannel-ds-dswbd                          1/1     Running                 0          59s
+kube-flannel   kube-flannel-ds-sphct                          1/1     Running                 0          59s
+kube-flannel   kube-flannel-ds-tp7s7                          1/1     Running                 0          59s
+kube-system    calico-kube-controllers-6879d4fcdc-85scm       0/1     ErrImagePull            0          132m
+kube-system    calico-node-6zlpl                              0/1     Init:ImagePullBackOff   0          132m
+kube-system    calico-node-ld9mk                              0/1     Init:ImagePullBackOff   0          132m
+kube-system    calico-node-rr48k                              0/1     Init:ImagePullBackOff   0          132m
+kube-system    coredns-7c65d6cfc9-49d9w                       1/1     Running                 0          156m
+kube-system    coredns-7c65d6cfc9-h9gnz                       1/1     Running                 0          156m
+kube-system    etcd-jskube1.fyre.ibm.com                      1/1     Running                 0          156m
+kube-system    kube-apiserver-jskube1.fyre.ibm.com            1/1     Running                 0          156m
+kube-system    kube-controller-manager-jskube1.fyre.ibm.com   1/1     Running                 0          156m
+kube-system    kube-proxy-pkcq6                               1/1     Running                 0          156m
+kube-system    kube-proxy-sm6cx                               1/1     Running                 0          150m
+kube-system    kube-proxy-xckh6                               1/1     Running                 0          150m
+kube-system    kube-scheduler-jskube1.fyre.ibm.com            1/1     Running                 0          156m
+```
+
+```
+# kubectl get node 
+NAME                   STATUS   ROLES           AGE    VERSION
+jskube1.fyre.ibm.com   Ready    control-plane   156m   v1.31.1
+jskube2.fyre.ibm.com   Ready    <none>          151m   v1.31.1
+jskube3.fyre.ibm.com   Ready    <none>          150m   v1.31.1
+```
+
+```
+root@jskube1:~/kube_baremetal# kubectl get pod -A -o wide
+NAMESPACE      NAME                                           READY   STATUS    RESTARTS   AGE     IP            NODE                   NOMINATED NODE   READINESS GATES
+kube-flannel   kube-flannel-ds-dswbd                          1/1     Running   0          9m39s   10.11.11.73   jskube2.fyre.ibm.com   <none>           <none>
+kube-flannel   kube-flannel-ds-sphct                          1/1     Running   0          9m39s   10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-flannel   kube-flannel-ds-tp7s7                          1/1     Running   0          9m39s   10.11.11.98   jskube3.fyre.ibm.com   <none>           <none>
+kube-system    calico-kube-controllers-6879d4fcdc-85scm       1/1     Running   0          140m    10.200.2.2    jskube3.fyre.ibm.com   <none>           <none>
+kube-system    calico-node-6zlpl                              0/1     Running   0          140m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    calico-node-ld9mk                              1/1     Running   0          140m    10.11.11.73   jskube2.fyre.ibm.com   <none>           <none>
+kube-system    calico-node-rr48k                              1/1     Running   0          140m    10.11.11.98   jskube3.fyre.ibm.com   <none>           <none>
+kube-system    coredns-7c65d6cfc9-49d9w                       1/1     Running   0          164m    10.200.2.4    jskube3.fyre.ibm.com   <none>           <none>
+kube-system    coredns-7c65d6cfc9-h9gnz                       1/1     Running   0          164m    10.200.2.3    jskube3.fyre.ibm.com   <none>           <none>
+kube-system    etcd-jskube1.fyre.ibm.com                      1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    kube-apiserver-jskube1.fyre.ibm.com            1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    kube-controller-manager-jskube1.fyre.ibm.com   1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    kube-proxy-pkcq6                               1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    kube-proxy-sm6cx                               1/1     Running   0          158m    10.11.11.98   jskube3.fyre.ibm.com   <none>           <none>
+kube-system    kube-proxy-xckh6                               1/1     Running   0          158m    10.11.11.73   jskube2.fyre.ibm.com   <none>           <none>
+kube-system    kube-scheduler-jskube1.fyre.ibm.com            1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+root@jskube1:~/kube_baremetal# ifconfig -a
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.11.11.66  netmask 255.255.240.0  broadcast 10.11.15.255
+        ether 00:00:0a:0b:0b:42  txqueuelen 1000  (Ethernet)
+        RX packets 35446325  bytes 4099136194 (4.0 GB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 21823  bytes 13161897 (13.1 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 9.30.180.237  netmask 255.255.254.0  broadcast 9.30.181.255
+        ether 00:00:09:1e:b4:ed  txqueuelen 1000  (Ethernet)
+        RX packets 1890050  bytes 762047310 (762.0 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 41450  bytes 8185832 (8.1 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+flannel.1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1450
+        inet 10.200.0.0  netmask 255.255.255.255  broadcast 0.0.0.0
+        ether da:e3:28:4f:dc:0e  txqueuelen 0  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 1679484  bytes 285808678 (285.8 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 1679484  bytes 285808678 (285.8 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+tunl0: flags=193<UP,RUNNING,NOARP>  mtu 1480
+        inet 10.200.83.128  netmask 255.255.255.255
+        tunnel   txqueuelen 1000  (IPIP Tunnel)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
 
 
-[Content](#contents)    
 
-## Debug status
-
-LDAP status debug   
-```
-dsadm@db2wh1 - Db2wh ~]$ /opt/ibm/dsserver/scripts/recovery/mgmt_health_check.pl -what LDAPrunning -debug
-Redirecting to /bin/systemctl status slapd.service
-Test case: LDAPrunning
-	config: Dynamite
-	longdescription: Check if LDAP server is running
-Results:
-	cmd:  service slapd status | grep PID | grep slapd 2>&1
-	debug:message: found slapd pid: 578659
-
-	output:  Main PID: 578659 (slapd)
-
-	rc: 0
-	status: 0
-	tc: health_check::test_service_running
-
-
-
-
-SUMMARY
-
-LDAPrunning                   : RUNNING
-
-```
-[Content](#contents) 
-
-## Files
-
-```
-/opt/ibm/dsserver/scripts/userExists.sh      
-```
-
-```sh
-#!/bin/sh
-# check for user existence.
-
-LDAP_INFO_FILE="/mnt/blumeta0/ldap/external/.ldap_info.json"
-
-dsserver_home="/opt/ibm/dsserver"
-getpropfrompropfile() {
-    sort ${1} | uniq | grep  "^${2}=" | sed "s%${2}=\(.*\)%\1%"
-}
-
-getdswebserverprop() {
-    propsFileName=${dsserver_home}/Config/dswebserver.properties
-    getpropfrompropfile ${propsFileName} ${1}
-}
-
-if [[ $# -lt 1 ]]; then
-    cat <<USAGE
-Error: No arguments
-Usage: $0 <user id> [ <time limit> ]
-
-- user id: user id to check for
-
-- time limit: wait at most time limit (default 30) seconds for a search to
-  complete when internal LDAP look-up is used
-
-ex: $0 user1
-    $0 user2 15
-USAGE
-    exit 1
-fi
-
-if [[ -f $LDAP_INFO_FILE ]]; then    ## external LDAP configuration 이 있으면. 
-    # Clear all entries in the SSSD cache to ensure we're getting a live result
-    # This is needed to safely check for user existence.
-    sudo sss_cache -E &> /dev/null
-    id $1 &> /dev/null
-    rc=$?
-else
-    secret_encrypted=$(getdswebserverprop "ldap.root.passwd")
-    secret=$(${dsserver_home}/scripts/decrypt.sh $secret_encrypted)
-    timelimit=${2:-30}
-    [[ $timelimit =~ ^[0-9]+$ ]] || timelimit=30
-    chk=$(ldapsearch -x -Z -v -l $timelimit -D "cn=bluldap,dc=blustratus,dc=com" -w $secret -b "dc=blustratus,dc=com" 2> /dev/null | grep uid: | grep -w $1 | cut -f2 -d:)
-    if [[ X"$chk" != "X" ]]; then
-        rc=0
-    else
-        rc=1
-    fi
-fi
-
-if [[ $rc -eq 0 ]]; then
-    echo "user exists"
-else
-    echo "user does not exist"
-fi
-exit $rc
-```
-
-[Content](#contents) 
-
-
+[Content](#contents)  
