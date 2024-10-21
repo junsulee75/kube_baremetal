@@ -3,7 +3,7 @@
 source config.ini # use /bin/bash for reading from the current directory
 source jscommon.sh
 
-enable_portforwarding() {
+kernelModule() {
 
     print1 " Enable port forwarding kernel OS setting. For permanent change, you should change /etc/sysctl.conf. Putting file /etc/sysctl.d/k8s.conf won't achieve it "
     #echo "target hosts : $ALLHOST"
@@ -40,4 +40,4 @@ EOF"
 
 }
 
-enable_portforwarding
+kernelModule
