@@ -1,5 +1,15 @@
 # kubenetes on baremetal
 
+These are scripts for creating kubenetes environment on baremetal hosts with one master and 2 workers nodes.   
+
+These scripts assumes the following.   
+
+- 3 hosts with Ubuntu 22.04 OS ( For simplicity, not supporting Redhat yet. )       
+- Passwordless root ssh log in is set already.   
+- hostnames convention is like xxxx1, xxxx2 and xxxx3 and those are set in /etc/hosts file of all hosts.     
+  Otherwise, read config.ini and set manually target host names.   
+
+
 ## Contents
 
 - [kubenetes on baremetal](#kubenetes-on-baremetal)
@@ -18,25 +28,45 @@
       - [flannel working](#flannel-working)
 
 
-## Reference
+## Steps   
 
-https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/   
-https://nvtienanh.info/blog/cai-dat-kubernetes-cluster-tren-ubuntu-server-22-04     
+Preapare 3 bare metal hosts with Ubunutu 24.04.   
+(If you are using IBM Fyre, create 3 hosts on quickburn.  )   
+
+SSH login to the first target master node, clone this repo.    
+
+```
+git clone https://github.com/junsulee75/kube_baremetal
+```
+
+Go to the directory   
+
+```
+cd kube_baremetal
+```
+
+Configure target hostnames in configure.ini    
+
+```
+# ...
+# Or uncomment the followint 3 lines and set the hostname values manally. (example) 
+ALLHOST="jskube1.fyre.ibm.com jskube2.fyre.ibm.com jskube3.fyre.ibm.com"
+headhosts=jskube1.fyre.ibm.com
+datahosts="jskube2.fyre.ibm.com db2wh3.fyre.ibm.com"
+```
+
+Run setup.sh
+```
+./setup.sh
+```
+
+That's it. Watch until the kubenetes cluster is ready.    
 
 
 [Content](#contents)  
 
+
 ## Manual steps
-
-### Disable swap ( all hosts )       
-```
-sudo swapoff -a 
-```
-
-Enable port forward
-```
-./enablePortFwrd.sh
-```
 
 ### Load setting ( all hosts ) 
 ```
@@ -338,4 +368,12 @@ tunl0: flags=193<UP,RUNNING,NOARP>  mtu 1480
 
 
 
-[Content](#contents)  
+[Content](#contents) 
+
+
+## Reference
+
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/   
+https://nvtienanh.info/blog/cai-dat-kubernetes-cluster-tren-ubuntu-server-22-04     
+
+

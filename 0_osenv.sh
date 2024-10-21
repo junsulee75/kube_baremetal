@@ -33,8 +33,14 @@ setProfile(){
 	done
 }
 
-#installXterm
-swCmdChkAllHost "xterm"
+
+if [[ "$pkgmgr" == "apt" ]]; then
+	print1 "Ubuntu : Adding 'universe' repostiory. I prefer to do this as this is often needed. If some message pops up, just select 'OK' "     
+    sudo add-apt-repository universe -y
+    sudo $pkgmgr update -y
+fi
+
+swCmdChkAllHost "jq"  # install jq for test
 setProfile
 pyChk ## install python 
 
