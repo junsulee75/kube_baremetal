@@ -8,7 +8,13 @@ source jscommon.sh
 
 flannel() {
 
+    #https://github.com/flannel-io/flannel#deploying-flannel-manually 
     print1 "Adding flannel for network"
+    
+    #kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+    print2 "Node after network addon. Check if Ready status" 
+    kubectl get node -A
+    
     
 }
 

@@ -15,6 +15,7 @@ initMaster() {
     echo "master ip is : $ipaddr"
     
     print1 "Initializing the 1st master node"
+    # purposely used 10.244.0.0 to use default flannel yaml  
     sudo kubeadm init \
   --pod-network-cidr=10.244.0.0/16 \
   --apiserver-advertise-address=$ipaddr | tee /tmp/kubeinit.out
