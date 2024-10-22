@@ -64,7 +64,7 @@ stop_immediately () {
 logger ()
 {
     if [ -z "$PRODUCT_LOGFILE" ]; then
-        export PRODUCT_LOGFILE=kube_install.log.$$
+        export PRODUCT_LOGFILE=/tmp/kube_install.log.$$
     fi
     # Print caller's source file, line number and function name
     # Skip two functions that are usually top of the stack

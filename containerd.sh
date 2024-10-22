@@ -81,8 +81,8 @@ restartSystemd(){
     done 
     
 }
-#addGPGKey
-#addRepo
-#installContainerd
-#confCgroup
+addGPGKey
+addRepo
+installContainerd
+confCgroup
 restartSystemd

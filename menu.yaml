@@ -10,4 +10,5 @@ Kubenetes install :
     swap off : swapOff.sh
     enable port forward : enablePortFwrd.sh
     Kernel module load configuration for containerd: kernelModule.sh
-    Install containerd: containerd.sh
+    Install containerd : containerd.sh
+    Install kubeadm, kubectl : installKube.sh

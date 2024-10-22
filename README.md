@@ -30,10 +30,10 @@ These scripts assumes the following.
 
 ## Steps   
 
-Preapare 3 bare metal hosts with Ubunutu 24.04.   
+1.Preapare 3 bare metal hosts with Ubunutu 24.04.   
 (If you are using IBM Fyre, create 3 hosts on quickburn.  )   
 
-SSH login to the first target master node, clone this repo.    
+2.SSH login to the first target master node, clone this repo.    
 
 ```
 git clone https://github.com/junsulee75/kube_baremetal
@@ -45,7 +45,11 @@ Go to the directory
 cd kube_baremetal
 ```
 
-Configure target hostnames in configure.ini    
+3.Configure config.ini 
+
+> If your hosts are fyre environment provisioned, you can skip this step 3.
+
+Target hostnames in configure.ini    
 
 ```
 # ...
@@ -55,7 +59,12 @@ headhosts=jskube1.fyre.ibm.com
 datahosts="jskube2.fyre.ibm.com db2wh3.fyre.ibm.com"
 ```
 
-Run setup.sh
+Set Master node IP address internal IP address.  
+```
+ipadddr="xx.xx.xx.xx"
+```
+
+4.Run setup.sh
 ```
 ./setup.sh
 ```
@@ -68,116 +77,7 @@ That's it. Watch until the kubenetes cluster is ready.
 
 ## Manual steps
 
-### Configure cgroup for containerd  
 
-```
-containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
-sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
-grep SystemdCgroup /etc/containerd/config.toml
-sudo sed -i 's/sandbox_image = "registry.k8s.io\/pause:3.[0-9]"/sandbox_image = "registry.k8s.io\/pause:3.9"/' /etc/containerd/config.toml
-grep sandbox_image /etc/containerd/config.toml 
-```
-
-```
-sudo systemctl restart containerd
-sudo systemctl status containerd
-sudo systemctl enable containerd
-```
-[Content](#contents)  
-
-### Installing kubeadm, kubelet and kubectl
-
-https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/   
-
-```
-sudo apt-get update
-# apt-transport-https may be a dummy package; if so, you can skip that package
-sudo apt-get install -y apt-transport-https ca-certificates curl gpg
-
-
-# If the directory `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
-# sudo mkdir -p -m 755 /etc/apt/keyrings
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-
-
-# This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-
-
-sudo apt-get update
-sudo apt-get install -y kubelet kubeadm kubectl
-sudo apt-mark hold kubelet kubeadm kubectl
-
-#sudo systemctl enable --now kubelet #no need to do . optional  
-```
-
-
-[Content](#contents)  
-
-### creating a cluster 
-
-```
-# my ip is 10.11.11.66/20 from "ip addr"
-sudo kubeadm init \
-  --pod-network-cidr=10.200.0.0/16 \
-  --apiserver-advertise-address=10.11.11.66
-#  --control-plane-endpoint=jskube1.fyre.ibm.com 
-
-```
-
-By root user 
-
-```
-export KUBECONFIG=/etc/kubernetes/admin.conf
-kubectl cluster-info
-kubectl get node -o wide
-cat /var/lib/kubelet/kubeadm-flags.env  
-```
-
-On workers
-```
-kubeadm join 10.11.11.66:6443 --token szejeo.v8ari9uraguos55n \
-	--discovery-token-ca-cert-hash sha256:d3127eee98bce6ad1beb0f63d6469707ae84188eec6495e1de4fb91670972a07 
-```
-
-On master
-```
-kubectl get node -o wide
-```
-
-[Content](#contents)  
-
-### Install network addons
-
-https://kubernetes.io/docs/concepts/cluster-administration/addons/#networking-and-network-policy   
-
-
-#### CALICO : not working well  
-
-```
-curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml -O
-```
-
-```yaml
-             - name: CALICO_IPV4POOL_CIDR
-               value: "10.200.0.0/16"
-```
-
-```
-kubectl apply -f calico.yaml
-```
-
-```
-kubectl get pods -n kube-system ; echo ;echo ;kubectl get node
-```
-
-Error   
-```
-Events:
-  Type     Reason            Age                     From     Message
-  ----     ------            ----                    ----     -------
-  Warning  DNSConfigForming  5m36s (x507 over 115m)  kubelet  Nameserver limits were exceeded, some nameservers have been omitted, the applied nameserver line is: 10.11.0.21 10.11.0.22 9.30.99.253
-```
 
 
 #### flannel working
