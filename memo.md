@@ -12,148 +12,148 @@
   - [Files](#files)
 
 
+## network addon
+
+### flannel
+
+#### flannel working
+
+https://github.com/flannel-io/flannel#deploying-flannel-manually   
+
+
+```yaml
+
+  net-conf.json: |
+    {
+      "Network": "10.200.0.0/16",
+      "EnableNFTables": false,
+      "Backend": {
+        "Type": "vxlan"
+      }
+    }
+...
+      containers:
+      - name: kube-flannel
+        image: docker.io/flannel/flannel:v0.25.7
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        - --iface=eth0
+```
+
+```
+# kubectl apply -f kube-flannel.yml
+Warning: resource namespaces/kube-flannel is missing the kubectl.kubernetes.io/last-applied-configuration annotation which is required by kubectl apply. kubectl apply should only be used on resources created declaratively by either kubectl create --save-config or kubectl apply. The missing annotation will be patched automatically.
+namespace/kube-flannel configured
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+serviceaccount/flannel created
+configmap/kube-flannel-cfg created
+daemonset.apps/kube-flannel-ds created
+
+```
+
+
+```
+root@jskube1:~/kube_baremetal# kubectl get pod -A
+NAMESPACE      NAME                                           READY   STATUS                  RESTARTS   AGE
+kube-flannel   kube-flannel-ds-dswbd                          1/1     Running                 0          59s
+kube-flannel   kube-flannel-ds-sphct                          1/1     Running                 0          59s
+kube-flannel   kube-flannel-ds-tp7s7                          1/1     Running                 0          59s
+kube-system    calico-kube-controllers-6879d4fcdc-85scm       0/1     ErrImagePull            0          132m
+kube-system    calico-node-6zlpl                              0/1     Init:ImagePullBackOff   0          132m
+kube-system    calico-node-ld9mk                              0/1     Init:ImagePullBackOff   0          132m
+kube-system    calico-node-rr48k                              0/1     Init:ImagePullBackOff   0          132m
+kube-system    coredns-7c65d6cfc9-49d9w                       1/1     Running                 0          156m
+kube-system    coredns-7c65d6cfc9-h9gnz                       1/1     Running                 0          156m
+kube-system    etcd-jskube1.fyre.ibm.com                      1/1     Running                 0          156m
+kube-system    kube-apiserver-jskube1.fyre.ibm.com            1/1     Running                 0          156m
+kube-system    kube-controller-manager-jskube1.fyre.ibm.com   1/1     Running                 0          156m
+kube-system    kube-proxy-pkcq6                               1/1     Running                 0          156m
+kube-system    kube-proxy-sm6cx                               1/1     Running                 0          150m
+kube-system    kube-proxy-xckh6                               1/1     Running                 0          150m
+kube-system    kube-scheduler-jskube1.fyre.ibm.com            1/1     Running                 0          156m
+```
+
+```
+# kubectl get node 
+NAME                   STATUS   ROLES           AGE    VERSION
+jskube1.fyre.ibm.com   Ready    control-plane   156m   v1.31.1
+jskube2.fyre.ibm.com   Ready    <none>          151m   v1.31.1
+jskube3.fyre.ibm.com   Ready    <none>          150m   v1.31.1
+```
+
+```
+root@jskube1:~/kube_baremetal# kubectl get pod -A -o wide
+NAMESPACE      NAME                                           READY   STATUS    RESTARTS   AGE     IP            NODE                   NOMINATED NODE   READINESS GATES
+kube-flannel   kube-flannel-ds-dswbd                          1/1     Running   0          9m39s   10.11.11.73   jskube2.fyre.ibm.com   <none>           <none>
+kube-flannel   kube-flannel-ds-sphct                          1/1     Running   0          9m39s   10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-flannel   kube-flannel-ds-tp7s7                          1/1     Running   0          9m39s   10.11.11.98   jskube3.fyre.ibm.com   <none>           <none>
+kube-system    calico-kube-controllers-6879d4fcdc-85scm       1/1     Running   0          140m    10.200.2.2    jskube3.fyre.ibm.com   <none>           <none>
+kube-system    calico-node-6zlpl                              0/1     Running   0          140m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    calico-node-ld9mk                              1/1     Running   0          140m    10.11.11.73   jskube2.fyre.ibm.com   <none>           <none>
+kube-system    calico-node-rr48k                              1/1     Running   0          140m    10.11.11.98   jskube3.fyre.ibm.com   <none>           <none>
+kube-system    coredns-7c65d6cfc9-49d9w                       1/1     Running   0          164m    10.200.2.4    jskube3.fyre.ibm.com   <none>           <none>
+kube-system    coredns-7c65d6cfc9-h9gnz                       1/1     Running   0          164m    10.200.2.3    jskube3.fyre.ibm.com   <none>           <none>
+kube-system    etcd-jskube1.fyre.ibm.com                      1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    kube-apiserver-jskube1.fyre.ibm.com            1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    kube-controller-manager-jskube1.fyre.ibm.com   1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    kube-proxy-pkcq6                               1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+kube-system    kube-proxy-sm6cx                               1/1     Running   0          158m    10.11.11.98   jskube3.fyre.ibm.com   <none>           <none>
+kube-system    kube-proxy-xckh6                               1/1     Running   0          158m    10.11.11.73   jskube2.fyre.ibm.com   <none>           <none>
+kube-system    kube-scheduler-jskube1.fyre.ibm.com            1/1     Running   0          164m    10.11.11.66   jskube1.fyre.ibm.com   <none>           <none>
+root@jskube1:~/kube_baremetal# ifconfig -a
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.11.11.66  netmask 255.255.240.0  broadcast 10.11.15.255
+        ether 00:00:0a:0b:0b:42  txqueuelen 1000  (Ethernet)
+        RX packets 35446325  bytes 4099136194 (4.0 GB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 21823  bytes 13161897 (13.1 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 9.30.180.237  netmask 255.255.254.0  broadcast 9.30.181.255
+        ether 00:00:09:1e:b4:ed  txqueuelen 1000  (Ethernet)
+        RX packets 1890050  bytes 762047310 (762.0 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 41450  bytes 8185832 (8.1 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+flannel.1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1450
+        inet 10.200.0.0  netmask 255.255.255.255  broadcast 0.0.0.0
+        ether da:e3:28:4f:dc:0e  txqueuelen 0  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 1679484  bytes 285808678 (285.8 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 1679484  bytes 285808678 (285.8 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+tunl0: flags=193<UP,RUNNING,NOARP>  mtu 1480
+        inet 10.200.83.128  netmask 255.255.255.255
+        tunnel   txqueuelen 1000  (IPIP Tunnel)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+
+
+[Content](#contents) 
+
+
 ## Reference
 
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/   
 https://nvtienanh.info/blog/cai-dat-kubernetes-cluster-tren-ubuntu-server-22-04     
 
-
-
-```
-podman exec -it Db2wh bash   # Go into the container   
-podman exec -it Db2wh status   # status check  
-podman exec -it Db2wh setpass <new password> # Change bluadmin password   
-
-/opt/ibm/dsserver/scripts/recovery/mgmt_health_check.pl -what LDAPrunning -debug  # service check each   
-```
-
-### LDAP
-```
-systemctl status slapd.service     ## internal LDAP service check  
-netstat -an |egrep "State|:389"    ## ldap connection 
-ldapsearch -x -Z    # list all LDAP user names   
-```
-[Content](#contents)  
-
-## Logs  
-```
-/var/log/Db2wh_local.log    
-```
-
-### collect DB2 warehouse logs
-```
-podman exec -it Db2wh getlogs > db2wh.log
-```
-
-```
-cat db2wh.log
-
-...
-Logs successfully collected and saved to <host volume>/tmp/Db2wh_240412033640_logs.zip 
-Your mounted host volume was specified in the docker run command (e.g. docker run ... -v <host volume>:/mnt/bludata0)
-```
-
-```
-# ls /mnt/clusterfs/tmp
-Db2wh_240412033640_logs.zip  Db2wh_Local_240214134053_logs.zip
-```
-
-
-[Content](#contents)    
-
-## Debug status
-
-LDAP status debug   
-```
-dsadm@db2wh1 - Db2wh ~]$ /opt/ibm/dsserver/scripts/recovery/mgmt_health_check.pl -what LDAPrunning -debug
-Redirecting to /bin/systemctl status slapd.service
-Test case: LDAPrunning
-	config: Dynamite
-	longdescription: Check if LDAP server is running
-Results:
-	cmd:  service slapd status | grep PID | grep slapd 2>&1
-	debug:message: found slapd pid: 578659
-
-	output:  Main PID: 578659 (slapd)
-
-	rc: 0
-	status: 0
-	tc: health_check::test_service_running
-
-
-
-
-SUMMARY
-
-LDAPrunning                   : RUNNING
-
-```
 [Content](#contents) 
-
-## Files
-
-```
-/opt/ibm/dsserver/scripts/userExists.sh      
-```
-
-```sh
-#!/bin/sh
-# check for user existence.
-
-LDAP_INFO_FILE="/mnt/blumeta0/ldap/external/.ldap_info.json"
-
-dsserver_home="/opt/ibm/dsserver"
-getpropfrompropfile() {
-    sort ${1} | uniq | grep  "^${2}=" | sed "s%${2}=\(.*\)%\1%"
-}
-
-getdswebserverprop() {
-    propsFileName=${dsserver_home}/Config/dswebserver.properties
-    getpropfrompropfile ${propsFileName} ${1}
-}
-
-if [[ $# -lt 1 ]]; then
-    cat <<USAGE
-Error: No arguments
-Usage: $0 <user id> [ <time limit> ]
-
-- user id: user id to check for
-
-- time limit: wait at most time limit (default 30) seconds for a search to
-  complete when internal LDAP look-up is used
-
-ex: $0 user1
-    $0 user2 15
-USAGE
-    exit 1
-fi
-
-if [[ -f $LDAP_INFO_FILE ]]; then    ## external LDAP configuration 이 있으면. 
-    # Clear all entries in the SSSD cache to ensure we're getting a live result
-    # This is needed to safely check for user existence.
-    sudo sss_cache -E &> /dev/null
-    id $1 &> /dev/null
-    rc=$?
-else
-    secret_encrypted=$(getdswebserverprop "ldap.root.passwd")
-    secret=$(${dsserver_home}/scripts/decrypt.sh $secret_encrypted)
-    timelimit=${2:-30}
-    [[ $timelimit =~ ^[0-9]+$ ]] || timelimit=30
-    chk=$(ldapsearch -x -Z -v -l $timelimit -D "cn=bluldap,dc=blustratus,dc=com" -w $secret -b "dc=blustratus,dc=com" 2> /dev/null | grep uid: | grep -w $1 | cut -f2 -d:)
-    if [[ X"$chk" != "X" ]]; then
-        rc=0
-    else
-        rc=1
-    fi
-fi
-
-if [[ $rc -eq 0 ]]; then
-    echo "user exists"
-else
-    echo "user does not exist"
-fi
-exit $rc
-```
-
-[Content](#contents) 
-
-
