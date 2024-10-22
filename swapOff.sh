@@ -20,8 +20,10 @@ swapOff() {
         print2 "$i : check swap size"
         ssh $SSH_NO_BANNER $HOST  ${i} "free -h"
         print2 "$i : Remove swap configuration manually if there is. "
+        echo "current : "
         ssh $SSH_NO_BANNER $HOST  ${i} "grep -i swap /etc/fstab"
         ssh $SSH_NO_BANNER $HOST  ${i} "sed -i 's/^\/swap/\#\/swap/' /etc/fstab"    # On fyre, default has swap setting. comment.    
+        echo "after change : "
         ssh $SSH_NO_BANNER $HOST  ${i} "grep -i swap /etc/fstab"
     done
 

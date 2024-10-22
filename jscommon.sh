@@ -146,6 +146,19 @@ pyChk(){
             if [[ "$pkgmgr" == "apt" ]]; then
                 sudo add-apt-repository universe -y
                 sudo $pkgmgr update -y
+               
+                # to prevent pop up message asking to restart outdated service  
+                # if the conf file does not exist, install the package
+                if [ ! -f "/etc/needrestart/needrestart.conf" ]; then
+                    echo "/etc/needrestart/needrestart.conf does not exist. Installing needstart package"
+                    sudo $pkgmgr install needrestart -y
+                fi                
+
+                # change i (interactive) to a (automatically) 
+                sudo sed -i 's/$nrconf{restart} = '\''i'\'';/$nrconf{restart} = '\''a'\'';/' /etc/needrestart/needrestart.conf
+                # Then uncomment
+                sudo sed -i 's/^\#$nrconf{restart}/$nrconf{restart}/' /etc/needrestart/needrestart.conf
+
                 sudo $pkgmgr install python3-pip -y
             else  ## non ubuntu, mostly Redhat
                 $pkgmgr install python3-pip -y

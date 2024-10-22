@@ -9,6 +9,5 @@ Kubenetes install :
 
     swap off : swapOff.sh
     enable port forward : enablePortFwrd.sh
-    NFS client configuration : nfsclient.sh  
-    Create nodes file : nodeConf.sh
     Kernel module load configuration for containerd: kernelModule.sh
+    Install containerd: containerd.sh
