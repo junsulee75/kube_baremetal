@@ -53,9 +53,9 @@ Set Master node IP address internal IP address.
 ipadddr="xx.xx.xx.xx"
 ```
 
-4.Run setup.sh
+4.Run install.sh
 ```
-./setup.sh
+./install.sh
 ```
 
 That's it. Watch until the kubenetes cluster is ready.    

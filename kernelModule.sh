@@ -11,7 +11,7 @@ kernelModule() {
     for i in $ALLHOST
     do
 
-        print2 "$i : Automatical load at boot"
+        print2 "$i : Automatic load at boot"
         ssh $SSH_NO_BANNER $HOST  ${i} "sudo tee /etc/modules-load.d/containerd.conf <<EOF
 overlay
 br_netfilter

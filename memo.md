@@ -16,8 +16,7 @@
 
 ### flannel
 
-#### flannel working
-
+Download the file 
 https://github.com/flannel-io/flannel#deploying-flannel-manually   
 
 
@@ -25,7 +24,7 @@ https://github.com/flannel-io/flannel#deploying-flannel-manually
 
   net-conf.json: |
     {
-      "Network": "10.200.0.0/16",
+      "Network": "10.200.0.0/16",  # <===
       "EnableNFTables": false,
       "Backend": {
         "Type": "vxlan"
@@ -40,7 +39,7 @@ https://github.com/flannel-io/flannel#deploying-flannel-manually
         args:
         - --ip-masq
         - --kube-subnet-mgr
-        - --iface=eth0
+        - --iface=eth0    # <=== mandatory ? worked fine without this. 
 ```
 
 ```

@@ -54,6 +54,6 @@ chkKube() {
     
 }
 
-#initMaster
-#joinWorkers
-#chkKube
+initMaster
+joinWorkers
+chkKube

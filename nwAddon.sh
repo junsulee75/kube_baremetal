@@ -10,11 +10,26 @@ flannel() {
 
     #https://github.com/flannel-io/flannel#deploying-flannel-manually 
     print1 "Adding flannel for network"
-    
-    #kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+    print2 "Downloading yaml file to /tmp/kube-flannel.yml"
+    curl -L -o /tmp/kube-flannel.yml https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml 
+
+    print2 "Installing flannel"
+    kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml 
+    # This will pick up the first network interface. On fyre, eth0, which is the correct one. 
+    # JSTODO : Otherwise, better to set the yaml file manually.  
+    #        args:
+    #    - --ip-masq
+    #    - --kube-subnet-mgr
+    #    - --iface=eth0    # <=== mandatory ? worked fine without this.
+   
+    echo " Waiting for 20 seconds. "    
+    sleep 20
     print2 "Node after network addon. Check if Ready status" 
     kubectl get node -A
-    
+    kubectl get pod -A
+   
+    echo "run the command and check kubenetes resource : export KUBECONFIG=/etc/kubernetes/admin.conf " 
     
 }
 
