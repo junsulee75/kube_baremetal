@@ -38,7 +38,7 @@ cd kube_baremetal
 
 > If your hosts are fyre environment provisioned, you can skip this step 3.
 
-Target hostnames in configure.ini    
+Target hostnames in config.ini    
 
 ```
 # ...
