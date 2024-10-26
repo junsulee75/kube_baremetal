@@ -11,6 +11,6 @@ Kubenetes install :
     enable port forward : enablePortFwrd.sh
     Kernel module load configuration for containerd: kernelModule.sh
     Install containerd : containerd.sh
-    Install kubeadm, kubectl : installKube.sh
+    Install kubeadm, kubelet and kubectl : installKube.sh
     Initialize master and join workers : confKube.sh
     Install network addon : nwAddon.sh flannel

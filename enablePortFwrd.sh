@@ -31,4 +31,10 @@ EOF"
 
 }
 
-enable_portforwarding
+enable_portforwarding  
+
+## JSTODO : 
+## Ubuntu 24.04 may not have net.ipv4.ip_forward in  /etc/sysctl.conf 
+## Maybe that's why Putting file /etc/sysctl.d/k8s.conf.  
+## So let's just do it and also replace /etc/sysctl.conf   
+## Or maybe, fyre provisioned Linux may configure /etc/sysctl.conf       

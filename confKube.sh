@@ -13,7 +13,8 @@ initMaster() {
         exit 1
     fi
     echo "master ip is : $ipaddr"
-    
+   
+    # JSTODO : 3.9 -> 3.10  
     print1 "Initializing the 1st master node"
     # purposely used 10.244.0.0 to use default flannel yaml  
     sudo kubeadm init \

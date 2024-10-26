@@ -19,8 +19,8 @@ These scripts assumes the following.
 
 ## Steps   
 
-1.Preapare 3 bare metal hosts with Ubunutu 24.04.   
-(If you are using IBM Fyre, create 3 hosts on quickburn.  )   
+1.Preapare 3 bare metal hosts with Ubunutu 22.04.    
+(If you are using IBM Fyre, create 3 hosts on quickburn with the versions.  )   
 
 2.SSH login to the first target master node, clone this repo.    
 

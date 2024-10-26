@@ -23,8 +23,14 @@ flannel() {
     #    - --kube-subnet-mgr
     #    - --iface=eth0    # <=== mandatory ? worked fine without this.
    
-    echo " Waiting for 20 seconds. "    
-    sleep 20
+    echo " Waiting for 20 seconds. "      
+    sleep 20 
+    # JSTODO : kube-flannel namespace pod status check 
+#    NAMESPACE      NAME                                    READY   STATUS    RESTARTS   AGE
+#kube-flannel   kube-flannel-ds-24vwz                   1/1     Running   0          62s
+#kube-flannel   kube-flannel-ds-8cv77                   1/1     Running   0          62s
+#kube-flannel   kube-flannel-ds-j7trk                   1/1     Running   0          62s
+    
     print2 "Node after network addon. Check if Ready status" 
     kubectl get node -A
     kubectl get pod -A

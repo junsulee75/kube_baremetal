@@ -167,4 +167,14 @@ pyChk(){
     disp_msglvl2 "Python necessary library installation"    
     # need to install library even if there is existing python3   
     pip3 install -U pyyaml
+    
+    # JSTODO : 
+    # Ubuntu 24.04  => Error: externally-managed-environment
+    # In Ubuntu 24.04, PEP 668 specification prevents system-wide Python environments from being modified directly via pip  
+    # sudo apt install python3-yaml 
+    # or 
+    # sudo pip3 install -U pyyaml --break-system-packages
+    # Let's do test   
+    # JSTODO : 
+    # Also for Ubuntu, consider the case sudo may need password.    
 }    
