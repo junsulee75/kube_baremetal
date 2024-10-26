@@ -143,7 +143,7 @@ pyChk(){
     fi
     which pip3  # On Redhat 8.10, had to install this again. Python3 install didn add this somehow.  
     if [ $? -ne 0 ] ; then
-        disp_msglvl2 "installaing pip3"
+        disp_msglvl2 "installing pip3"
         # From the previous logic, this is set when OS is ubuntu
         # To install pip3, there are some other steps in ubuntu
         if [[ "$pkgmgr" == "apt" ]]; then
@@ -164,8 +164,16 @@ pyChk(){
 
             # Ubuntu 22.04 : working fine. 
             # Ubuntu 24.04 . on some systems, gets error: E: Package 'python3-pip' has no installation candidate.
-            #              However, it's fine as we will use 'apt install' in 24.04. Therefore, ignore the error for now. JSTODO   
-            sudo $pkgmgr install python3-pip -y 
+            #                Didn't have the issue on fresh install ubuntu 24.04. But on some cloud provisioned system, this happens. 
+            #              If error happens, will try to get around with other way once.  
+            #              However, it may be fine as we can still use 'apt install' to install xml library in 24.04. Therefore, ignore the error for now. JSTODO   
+            sudo $pkgmgr install python3-pip -y
+            if [ $? -n 0 ] ; then
+                print2 "pip3 installation failure on $version_id . Trying other way soon. "  
+                curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+                sudo python3 /tmp/get-pip.py --break-system-packages
+            fi    
+            
         else  ## non ubuntu, mostly Redhat
             $pkgmgr install python3-pip -y  
         fi

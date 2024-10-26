@@ -4,7 +4,7 @@ These are scripts for creating kubenetes environment on baremetal hosts with one
 
 These scripts assumes the following.   
 
-- 3 hosts with Ubuntu version 22.04 or 24.04 ( For simplicity, not supporting Redhat yet. )       
+- 3 hosts with Ubuntu version 22.04 ( For simplicity, not supporting Redhat yet. Ubuntu 24.04 test is in progress.   )       
 - Passwordless root ssh log in among all hosts are set already.    
 - hostnames convention is like xxxx1, xxxx2 and xxxx3 and those are set in /etc/hosts file of all hosts.     
   Otherwise, read config.ini and set manually target host names.   
@@ -60,6 +60,7 @@ ipadddr="xx.xx.xx.xx"
 
 That's it. Watch until the kubenetes cluster is ready.    
 
+If you have doubt how it works, here is the installation terminal output example page on [Ubuntu 22.04](./output_ubuntu22.md) .  
 
 [Content](#contents)  
 

@@ -25,6 +25,7 @@ swCmdChkAllHost(){
 setProfile(){
 	disp_msglvl2 "setting set -o vi"
 	echo "set -o vi" >> /etc/bashrc
+	echo "set -o vi" >> ~/.bash_profile  # ubuntu may need it. adding to /etc/bashrc not working sometimes.      
 
 	for HOST in $datahost
 	do

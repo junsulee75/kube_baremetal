@@ -39,8 +39,9 @@ flannel() {
     print2 "Node after network addon. Check if Ready status" 
     kubectl get node -A
     kubectl get pod -A
-   
-    echo "run the command and check kubenetes resource : export KUBECONFIG=/etc/kubernetes/admin.conf " 
+  
+    echo ""
+    echo "Run the command and check kubenetes resource : export KUBECONFIG=/etc/kubernetes/admin.conf " 
     
 }
 
