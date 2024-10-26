@@ -5,7 +5,7 @@ These are scripts for creating kubenetes environment on baremetal hosts with one
 These scripts assumes the following.   
 
 - 3 hosts with Ubuntu 22.04 OS ( For simplicity, not supporting Redhat yet. )       
-- Passwordless root ssh log in is set already.   
+- Passwordless root ssh log in among all hosts are set already.    
 - hostnames convention is like xxxx1, xxxx2 and xxxx3 and those are set in /etc/hosts file of all hosts.     
   Otherwise, read config.ini and set manually target host names.   
 
