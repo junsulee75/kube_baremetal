@@ -45,7 +45,7 @@ setProfile
 pyChk ## install python 
 
 disp_msglvl1 "Copying frequently used commands to /usr/local/bin"   
-for f in menu.py 
+for f in menu.py watch.pl 
 do
 	rm -f /usr/local/bin/$f
     disp_msglvl2 "Copying `pwd`/$f"

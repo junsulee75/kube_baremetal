@@ -21,9 +21,10 @@ SSH_NO_BANNER="-q -o LogLevel=QUIET -o StrictHostKeyChecking=no"  # example full
 # Package manager command to use.  yum or apt 
 #################################################
 pkgmgr="yum"  # Linus package manager command. set this as yum as it's more popular  
-
+version_id=""
 if [[ -f /etc/os-release ]]; then   ## make sure to run with bash. Otherwise, will get error.   
     os=$(grep '^ID=' /etc/os-release | awk -F= '{print $2}' | tr -d '"')    # remove the quote " if there is
+    version_id=$(grep '^VERSION_ID=' /etc/os-release | awk -F= '{print $2}' | tr -d '"')    # remove the quote " if there is
     
     if [[ "$os" == "rhel" || "$os" == "fedora" || "$os" == "centos" ]]; then
         pkgmgr="yum"
@@ -132,6 +133,8 @@ swCmdChk(){
     done
 }
 
+
+# Install python3 package and necessary libraries  
 pyChk(){
     which python3
     if [ $? -ne 0 ] ; then
@@ -141,39 +144,60 @@ pyChk(){
     which pip3  # On Redhat 8.10, had to install this again. Python3 install didn add this somehow.  
     if [ $? -ne 0 ] ; then
         disp_msglvl2 "installaing pip3"
-            # From the previous logic, this is set when OS is ubuntu
-            # To install pip3, there are some other steps in ububtu
-            if [[ "$pkgmgr" == "apt" ]]; then
-                sudo add-apt-repository universe -y
-                sudo $pkgmgr update -y
-               
-                # to prevent pop up message asking to restart outdated service  
-                # if the conf file does not exist, install the package
-                if [ ! -f "/etc/needrestart/needrestart.conf" ]; then
-                    echo "/etc/needrestart/needrestart.conf does not exist. Installing needstart package"
-                    sudo $pkgmgr install needrestart -y
-                fi                
+        # From the previous logic, this is set when OS is ubuntu
+        # To install pip3, there are some other steps in ubuntu
+        if [[ "$pkgmgr" == "apt" ]]; then
+            sudo add-apt-repository universe -y
+            sudo $pkgmgr update -y
+            
+            # To prevent pop up message asking to restart outdated service package.     
+            # For this, needrestart package is necessary.  If the conf file does not exist, install the package
+            if [ ! -f "/etc/needrestart/needrestart.conf" ]; then
+                echo "/etc/needrestart/needrestart.conf does not exist. Installing needstart package"
+                sudo $pkgmgr install needrestart -y
+            fi                
 
-                # change i (interactive) to a (automatically) 
-                sudo sed -i 's/$nrconf{restart} = '\''i'\'';/$nrconf{restart} = '\''a'\'';/' /etc/needrestart/needrestart.conf
-                # Then uncomment
-                sudo sed -i 's/^\#$nrconf{restart}/$nrconf{restart}/' /etc/needrestart/needrestart.conf
+            # change i (interactive) to a (automatically) 
+            sudo sed -i 's/$nrconf{restart} = '\''i'\'';/$nrconf{restart} = '\''a'\'';/' /etc/needrestart/needrestart.conf
+            # Then uncomment
+            sudo sed -i 's/^\#$nrconf{restart}/$nrconf{restart}/' /etc/needrestart/needrestart.conf
 
-                sudo $pkgmgr install python3-pip -y
-            else  ## non ubuntu, mostly Redhat
-                $pkgmgr install python3-pip -y
-            fi
+            # Ubuntu 22.04 : working fine. 
+            # Ubuntu 24.04 . on some systems, gets error: E: Package 'python3-pip' has no installation candidate.
+            #              However, it's fine as we will use 'apt install' in 24.04. Therefore, ignore the error for now. JSTODO   
+            sudo $pkgmgr install python3-pip -y 
+        else  ## non ubuntu, mostly Redhat
+            $pkgmgr install python3-pip -y  
+        fi
     fi
     disp_msglvl2 "Python necessary library installation"    
-    # need to install library even if there is existing python3   
-    pip3 install -U pyyaml
+    # need to install library even if there is existing python3  
+    
+    if [[ "$pkgmgr" == "apt" ]]; then
+        # Ubuntu 24.04 : pip3 install -U pyyaml => Error: externally-managed-environment
+        # Since Ubuntu 24.04, PEP 668 specification prevents system-wide Python environments from being modified directly via pip  
+        # Therefore, I think there are two options.  
+        # sudo apt install python3-yaml -y 
+        # or 
+        # sudo pip3 install -U pyyaml --break-system-packages
+        case "$version_id" in
+            "24.04"|"Some future version to add")
+                sudo apt install python3-yaml -y       
+                ;;
+            "22.04")
+                pip3 install -U pyyaml
+                ;;
+            *)
+                sudo apt install python3-yaml -y # If unknown version, just try new way.   
+                ;;
+
+        esac
+    else   
+        pip3 install -U pyyaml
+    fi
     
     # JSTODO : 
-    # Ubuntu 24.04  => Error: externally-managed-environment
-    # In Ubuntu 24.04, PEP 668 specification prevents system-wide Python environments from being modified directly via pip  
-    # sudo apt install python3-yaml 
-    # or 
-    # sudo pip3 install -U pyyaml --break-system-packages
+
     # Let's do test   
     # JSTODO : 
     # Also for Ubuntu, consider the case sudo may need password.    
