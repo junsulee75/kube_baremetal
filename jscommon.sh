@@ -168,7 +168,7 @@ pyChk(){
             #              If error happens, will try to get around with other way once.  
             #              However, it may be fine as we can still use 'apt install' to install xml library in 24.04. Therefore, ignore the error for now. JSTODO   
             sudo $pkgmgr install python3-pip -y
-            if [ $? -n 0 ] ; then
+            if [ $? -ne 0 ] ; then
                 print2 "pip3 installation failure on $version_id . Trying other way soon. "  
                 curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
                 sudo python3 /tmp/get-pip.py --break-system-packages
