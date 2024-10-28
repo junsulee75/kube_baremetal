@@ -6,7 +6,7 @@ source jscommon.sh
 
 case "$version_id" in
     "24.04"|"Some future version to add")
-        echo "Wait for some time before creating kubenetes cluster....";sleep 120
+        echo "Wait for some time before creating kubenetes cluster....";sleep 10
         ;;
     *)
         echo "continue without sleep !!! "

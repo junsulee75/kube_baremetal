@@ -5,7 +5,7 @@ source jscommon.sh
 
 case "$version_id" in
     "24.04"|"Some future version to add")
-        echo "Wait for some time before creating kubenetes cluster....";sleep 120
+        echo "Wait for some time before creating kubenetes cluster.... ( 2 minutes to avoid dpkg lock release from all systems)  ";sleep 120
         ;;
     *)
         echo "continue without sleep !!! "
@@ -22,7 +22,7 @@ waitDpkgLockRelease() {
     
     while true; do
         ssh $SSH_NO_BANNER $remote_host "lsof 2>/dev/null | grep /var/lib/dpkg/lock-frontend"
-        lockCnt = $(ssh $SSH_NO_BANNER $remote_host "lsof 2>/dev/null | grep /var/lib/dpkg/lock-frontend | wc -l")
+        lockCnt=$(ssh $SSH_NO_BANNER $remote_host "lsof 2>/dev/null | grep /var/lib/dpkg/lock-frontend | wc -l")  # Ensure no spaces around = in lockCnt=$(...)
         
         if [[ "$lockCnt" -eq 0 ]]; then
             echo "$remote_host : No lock on the file /var/lib/dpkg/lock-frontend. Continue ..."
