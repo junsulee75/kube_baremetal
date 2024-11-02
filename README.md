@@ -1,11 +1,11 @@
 # kubenetes on baremetal
 
 These are scripts for creating kubenetes environment on baremetal hosts with 1 master and multiple workers nodes,  
-mainly test purpose with few 3 ~ 5 hosts.    
+mainly for test purpose with few 3 ~ 5 hosts. (But no limit on the number of hosts by this script)         
 
 These scripts assumes the following.   
 
-- Hosts with Ubuntu 22.04 or 24.04.  
+- Hosts with Ubuntu 22.04 or 24.04. ( Other linux distribution such as Redhat, SLES are not supported yet. )      
 - Passwordless root ssh log in among all hosts are set already.    
 - hostnames convention is like xxxx1, xxxx2 and xxxx3 and those are set in /etc/hosts file of all hosts.     
   Otherwise, read config.ini and set manually target host names.   
@@ -20,7 +20,7 @@ These scripts assumes the following.
 
 ## Steps   
 
-1.Preapare 3 or more bare metal hosts with Ubunutu 22.04.    
+1.Preapare at least 3 or more bare metal hosts with Ubuntu 22.04 or 24.04.             
 (If you are using IBM Fyre, create 3 ~ 5 hosts on quickburn with the versions.  )   
 
 2.SSH login to the first target master node, clone this repo.    
