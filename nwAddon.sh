@@ -51,7 +51,7 @@ case $addon in
         flannel
         ;;
     * )
-        echo "Unsupported option"
+        echo "Unsupported option : try nwAddon.sh flannel"
         ;;
 esac
 

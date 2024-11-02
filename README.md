@@ -1,10 +1,11 @@
 # kubenetes on baremetal
 
-These are scripts for creating kubenetes environment on baremetal hosts with one master and 2 workers nodes.   
+These are scripts for creating kubenetes environment on baremetal hosts with 1 master and multiple workers nodes,  
+mainly test purpose with few 3 ~ 5 hosts.    
 
 These scripts assumes the following.   
 
-- 3 hosts with Ubuntu version 22.04 ( For simplicity, not supporting Redhat yet. Ubuntu 24.04 test is in progress.   )       
+- Hosts with Ubuntu 22.04 or 24.04.  
 - Passwordless root ssh log in among all hosts are set already.    
 - hostnames convention is like xxxx1, xxxx2 and xxxx3 and those are set in /etc/hosts file of all hosts.     
   Otherwise, read config.ini and set manually target host names.   
@@ -19,8 +20,8 @@ These scripts assumes the following.
 
 ## Steps   
 
-1.Preapare 3 bare metal hosts with Ubunutu 22.04.    
-(If you are using IBM Fyre, create 3 hosts on quickburn with the versions.  )   
+1.Preapare 3 or more bare metal hosts with Ubunutu 22.04.    
+(If you are using IBM Fyre, create 3 ~ 5 hosts on quickburn with the versions.  )   
 
 2.SSH login to the first target master node, clone this repo.    
 
@@ -42,13 +43,13 @@ Target hostnames in config.ini
 
 ```
 # ...
-# Or uncomment the followint 3 lines and set the hostname values manally. (example) 
+# Or uncomment the followint 3 lines and set the hostname values manally. (3 hosts example) 
 ALLHOST="jskube1.fyre.ibm.com jskube2.fyre.ibm.com jskube3.fyre.ibm.com"
 headhosts=jskube1.fyre.ibm.com
-datahosts="jskube2.fyre.ibm.com db2wh3.fyre.ibm.com"
+datahosts="jskube2.fyre.ibm.com jskube3.fyre.ibm.com"
 ```
 
-Set Master node IP address internal IP address.  
+Set 1st host internal network adpater IP address.  (1st host will be used for master control plane node)    
 ```
 ipadddr="xx.xx.xx.xx"
 ```
