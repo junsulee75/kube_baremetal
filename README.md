@@ -43,15 +43,20 @@ Target hostnames in config.ini
 
 ```
 # ...
-# Or uncomment the followint 3 lines and set the hostname values manally. (3 hosts example) 
+# Or uncomment the following 3 lines and set the hostname values manally. (3 hosts example) 
 ALLHOST="jskube1.fyre.ibm.com jskube2.fyre.ibm.com jskube3.fyre.ibm.com"
 headhosts=jskube1.fyre.ibm.com
 datahosts="jskube2.fyre.ibm.com jskube3.fyre.ibm.com"
 ```
 
-Set 1st host internal network adpater IP address.  (1st host will be used for master control plane node)    
+Set 1st host internal network adpater IP address and the interface name.  (1st host will be used for master control plane node)    
+
+Example)   
 ```
 ipadddr="xx.xx.xx.xx"
+
+# Internal network interface name of master node . Configure manually
+iface="eth0"
 ```
 
 4.Run install.sh

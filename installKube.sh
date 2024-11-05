@@ -28,7 +28,9 @@ waitDpkgLockRelease() {
             echo "$remote_host : No lock on the file /var/lib/dpkg/lock-frontend. Continue ..."
             break
         else
-            echo "$remote_host : $lockCnt locks on the file /var/lib/dpkg/lock-frontend. Wait for 5 seconds and try again !!"
+            echo "$remote_host : $lockCnt locks on the file /var/lib/dpkg/lock-frontend. Will try again after 5 seconds. "  
+            echo "Be patient!! We won't give up until the locks are released. This may take some minutes. This lock only happens on Ubuntu 24.04. "
+            sleep 5
         fi
     done
 

@@ -1,5 +1,6 @@
 package main
 
+// don't use this, in test yet.
 import (
 	"fmt"
 	"io/ioutil"
