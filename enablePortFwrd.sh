@@ -5,7 +5,7 @@ source jscommon.sh
 
 enable_portforwarding() {
 
-    print1 " Enable port forwarding kernel OS setting. For permanent change, you should change /etc/sysctl.conf. Putting file /etc/sysctl.d/k8s.conf won't achieve it "
+    print1 " Enable port forwarding kernel OS setting. If the parameter is set in /etc/sysctl.conf, this script will check and change there too. "
     #echo "target hosts : $ALLHOST"
 
     for i in $ALLHOST
